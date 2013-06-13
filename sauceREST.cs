@@ -14,6 +14,7 @@ namespace saucelabs.saucerest {
         public static readonly string RESTURL = "https://saucelabs.com/rest/v1/{0}";
         private static readonly string USER_RESULT_FORMAT = RESTURL + "/{1}";
         private static readonly string JOB_RESULT_FORMAT = RESTURL + "/jobs/{1}";
+        private static readonly string JOBLIST_RESULT_FORMAT = RESTURL + "/jobs?start_time={1}&end_time={2}&limit={3}";
         private static readonly string DOWNLOAD_VIDEO_FORMAT = "https://saucelabs.com/rest/{0}/jobs/{1}/results/video.flv";
         private static readonly string DOWNLOAD_LOG_FORMAT = JOB_RESULT_FORMAT + "/results/video.flv";
         private static readonly string DATE_FORMAT = "yyyyMMdd_HHmmSS";
@@ -109,7 +110,7 @@ namespace saucelabs.saucerest {
             try {
                 WebRequest request = WebRequest.Create(restEndpoint);
                 request.Method = "GET";
-                request.Timeout = 2000;
+                request.Timeout = 7000;
 
                 String auth = encodeAuthentication();                
                 request.Headers.Add("Authorization", "Basic " + auth);
@@ -174,7 +175,7 @@ namespace saucelabs.saucerest {
 
                 WebRequest request = WebRequest.Create(restEndpoint);
                 request.Method = "PUT";
-                request.Timeout = 3000;
+                request.Timeout = 10000;
 
                 string auth = encodeAuthentication();
                 request.Headers.Add("Authorization", "Basic " + auth);
@@ -196,6 +197,21 @@ namespace saucelabs.saucerest {
             } catch (IOException e) {
                 Log("Error updating Sauce Results: " + e.ToString());
             }
+        }
+
+        public Dictionary<string, string>[] getJobIDList(long start_time, long end_time, int limit) {
+            Uri restEndpoint = null;
+            try {
+                restEndpoint = new Uri(String.Format(JOBLIST_RESULT_FORMAT, username, start_time, end_time, limit));
+            } catch (UriFormatException e) {
+                Log("Error constructing Sauce URL: " + e.ToString());
+            }
+            string result = retrieveResults(restEndpoint);
+
+            if (!result.Contains("error"))
+                return JsonConvert.DeserializeObject<Dictionary<string, string>[]>(result);
+            else
+                return JsonConvert.DeserializeObject<Dictionary<string, string>[]>("");
         }
 
         public string encodeAuthentication() {

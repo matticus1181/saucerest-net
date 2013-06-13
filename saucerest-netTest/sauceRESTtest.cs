@@ -1,7 +1,10 @@
-﻿using NUnit.Framework;
+﻿using System;
+using System.Collections.Generic;
+using NUnit.Framework;
 using saucelabs.saucerest;
 
 namespace saucelabs.saucerestnetTest {
+    [Ignore]
     [TestFixture()]
     public class sauceRESTtest {
 
@@ -12,13 +15,15 @@ namespace saucelabs.saucerestnetTest {
 
         [Test()]
         public void getJobInfoTest() {
-            SauceREST tester = new SauceREST("username", "accesskey");
+            SauceREST tester = new SauceREST("username", "access-key");
 
-            //Assert.AreEqual(string.Empty, tester.getJobInfo("jobid"));
+            //Dictionary<string, string>[] test = tester.getJobIDList(DateTime.Today.AddDays(-3).Ticks, DateTime.Today.Ticks, 1000);
+
+            //tester.jobPassed("b786a5b7eeb5407ebf90dfe81598c5c5");
 
             //tester.jobPassed("jobid");
 
-            tester.downloadVideo("jobid", "d:\\");
+            //tester.downloadVideo("jobid", "d:\\");
         }
     }
 }
