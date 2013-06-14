@@ -14,7 +14,7 @@ namespace saucelabs.saucerest {
         public static readonly string RESTURL = "https://saucelabs.com/rest/v1/{0}";
         private static readonly string USER_RESULT_FORMAT = RESTURL + "/{1}";
         private static readonly string JOB_RESULT_FORMAT = RESTURL + "/jobs/{1}";
-        private static readonly string JOBLIST_RESULT_FORMAT = RESTURL + "/jobs?start_time={1}&end_time={2}&limit={3}";
+        private static readonly string JOBLIST_RESULT_FORMAT = RESTURL + "/jobs?from={1}&to={2}&limit={3}";
         private static readonly string DOWNLOAD_VIDEO_FORMAT = "https://saucelabs.com/rest/{0}/jobs/{1}/results/video.flv";
         private static readonly string DOWNLOAD_LOG_FORMAT = JOB_RESULT_FORMAT + "/results/video.flv";
         private static readonly string DATE_FORMAT = "yyyyMMdd_HHmmSS";
@@ -105,14 +105,18 @@ namespace saucelabs.saucerest {
         }
 
         private string retrieveResults(Uri restEndpoint) {
+            return retrieveResults(restEndpoint, 7000);
+        }
+
+        private string retrieveResults(Uri restEndpoint, int timeOut) {
             string results = string.Empty;
 
             try {
                 WebRequest request = WebRequest.Create(restEndpoint);
                 request.Method = "GET";
-                request.Timeout = 7000;
+                request.Timeout = timeOut;
 
-                String auth = encodeAuthentication();                
+                String auth = encodeAuthentication();
                 request.Headers.Add("Authorization", "Basic " + auth);
 
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
@@ -199,19 +203,26 @@ namespace saucelabs.saucerest {
             }
         }
 
-        public Dictionary<string, string>[] getJobIDList(long start_time, long end_time, int limit) {
+        public Dictionary<string, string>[] getJobIDList(DateTime start_time, DateTime end_time, int limit, int time_out) {
             Uri restEndpoint = null;
             try {
-                restEndpoint = new Uri(String.Format(JOBLIST_RESULT_FORMAT, username, start_time, end_time, limit));
+
+                restEndpoint = new Uri(String.Format(JOBLIST_RESULT_FORMAT, username, DateTimeToUnixTimestamp(start_time), DateTimeToUnixTimestamp(end_time), limit));
             } catch (UriFormatException e) {
                 Log("Error constructing Sauce URL: " + e.ToString());
             }
-            string result = retrieveResults(restEndpoint);
+            string result = retrieveResults(restEndpoint,time_out);
 
             if (!result.Contains("error"))
                 return JsonConvert.DeserializeObject<Dictionary<string, string>[]>(result);
             else
                 return JsonConvert.DeserializeObject<Dictionary<string, string>[]>("");
+        }
+
+        private double DateTimeToUnixTimestamp(DateTime dateTime) {
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            TimeSpan diff = dateTime - origin;
+            return Math.Floor(diff.TotalSeconds);
         }
 
         public string encodeAuthentication() {
