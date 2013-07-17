@@ -6,7 +6,7 @@ using System.Text;
 using Newtonsoft.Json;
 
 namespace saucelabs.saucerest {
-    public class SauceREST {
+    public class SauceREST : saucerest_net.ISauceREST {
 
         protected string username;
         protected string accessKey;
