@@ -1,6 +1,6 @@
 ﻿using System;
 namespace saucerest_net {
-    interface ISauceREST {
+    public interface ISauceREST {
         void downloadLog(string jobId, string location);
         void downloadVideo(string jobId, string location);
         string encodeAuthentication();
