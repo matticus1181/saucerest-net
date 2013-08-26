@@ -19,9 +19,18 @@ namespace saucelabs.saucerest {
         private static readonly string DOWNLOAD_LOG_FORMAT = JOB_RESULT_FORMAT + "/results/video.flv";
         private static readonly string DATE_FORMAT = "yyyyMMdd_HHmmSS";
 
+        public int TimoutMS { get; set; }
+
         public SauceREST(string username, string accessKey) {
             this.username = username;
             this.accessKey = accessKey;
+            TimoutMS = 30000;
+        }
+
+        public SauceREST(string username, string accessKey, int timeout) {
+            this.username = username;
+            this.accessKey = accessKey;
+            TimoutMS = timeout;
         }
 
         /**
@@ -105,16 +114,12 @@ namespace saucelabs.saucerest {
         }
 
         private string retrieveResults(Uri restEndpoint) {
-            return retrieveResults(restEndpoint, 7000);
-        }
-
-        private string retrieveResults(Uri restEndpoint, int timeOut) {
             string results = string.Empty;
 
             try {
                 WebRequest request = WebRequest.Create(restEndpoint);
                 request.Method = "GET";
-                request.Timeout = timeOut;
+                request.Timeout = TimoutMS;
 
                 String auth = encodeAuthentication();
                 request.Headers.Add("Authorization", "Basic " + auth);
@@ -141,7 +146,7 @@ namespace saucelabs.saucerest {
             try {
                 WebRequest request = WebRequest.Create(restEndpoint);
                 request.Method = "GET";
-                request.Timeout = 20000;
+                request.Timeout = TimoutMS;
 
                 string auth = encodeAuthentication();
                 request.Headers.Add("Authorization", "Basic " + auth);
@@ -179,7 +184,7 @@ namespace saucelabs.saucerest {
 
                 WebRequest request = WebRequest.Create(restEndpoint);
                 request.Method = "PUT";
-                request.Timeout = 10000;
+                request.Timeout = TimoutMS;
 
                 string auth = encodeAuthentication();
                 request.Headers.Add("Authorization", "Basic " + auth);
@@ -203,7 +208,7 @@ namespace saucelabs.saucerest {
             }
         }
 
-        public Dictionary<string, string>[] getJobIDList(DateTime start_time, DateTime end_time, int limit, int time_out) {
+        public Dictionary<string, string>[] getJobIDList(DateTime start_time, DateTime end_time, int limit) {
             Uri restEndpoint = null;
             try {
 
@@ -211,7 +216,7 @@ namespace saucelabs.saucerest {
             } catch (UriFormatException e) {
                 Log("Error constructing Sauce URL: " + e.ToString());
             }
-            string result = retrieveResults(restEndpoint,time_out);
+            string result = retrieveResults(restEndpoint);
 
             if (!result.Contains("error"))
                 return JsonConvert.DeserializeObject<Dictionary<string, string>[]>(result);
